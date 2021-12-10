@@ -43,7 +43,9 @@ class _AllWorkersWidgetState extends State<AllWorkersWidget> {
               right: BorderSide(width: 1)
             )
           ),
-          child: Image.network(widget.userImageUrl ?? 'https://cdn.icon.com/icons.com/icons2/2643/PNG/512/male_boy_person_people_avatar_icon_159358.png',
+          child: Image.network(widget.userImageUrl == null
+              ? 'https://cdn.icon.com/icons.com/icons2/2643/PNG/512/male_boy_person_people_avatar_icon_159358.png'
+              : widget.userImageUrl,
           ),
         ),
         title: Text(
