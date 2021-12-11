@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import 'package:job_sharing_app/services/global_variables.dart';
@@ -77,7 +79,9 @@ class _SignUpState extends State<SignUp> {
                     child: Column(
                       children: [
                         GestureDetector(
-                          onTap: (){},
+                          onTap: (){
+                            _showImageDialog();
+                          },
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Container(
@@ -157,19 +161,60 @@ class _SignUpState extends State<SignUp> {
                         TextFormField(
                           textInputAction: TextInputAction.next,
                           onEditingComplete: () => FocusScope.of(context).requestFocus(_phoneNumberFocusNode),
+                          focusNode: _passFocusNode,
+                          keyboardType: TextInputType.visiblePassword,
+                          controller: _passTextController,
+                          validator: (value){
+                            if(value!.isEmpty || value.length < 7 ){
+                              return "Please enter a valid password";
+                            }else{
+                              return null;
+                            }
+                          },
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            suffixIcon: GestureDetector(
+                              onTap: (){
+                                setState(() {
+                                  _obscureText = !_obscureText;
+                                });
+                              },
+                              child: Icon(
+                                _obscureText
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                            ),
+                              hintText: 'Password',
+                              hintStyle: const TextStyle(color: Colors.white),
+                              enabledBorder: const UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white),
+                              ),
+                              focusedBorder: const UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white),
+                              ),
+                              errorBorder: const UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red),
+                              )
+                          ),
+                        ),
+                        const SizedBox(height: 20,),
+                        TextFormField(
+                          textInputAction: TextInputAction.next,
+                          onEditingComplete: () => FocusScope.of(context).requestFocus(_positionCPFocusNode),
                           focusNode: _phoneNumberFocusNode,
                           keyboardType: TextInputType.phone,
                           controller: _phoneNumberController,
                           validator: (value){
-                            if(value!.isEmpty || !value.contains('@')){
-                              return "Please enter a valid email address";
+                            if(value!.isEmpty){
+                              return "This field is missing";
                             }else{
                               return null;
                             }
                           },
                           style: const TextStyle(color: Colors.white),
                           decoration: const InputDecoration(
-                              hintText: 'Email',
+                              hintText: 'Phone number',
                               hintStyle: TextStyle(color: Colors.white),
                               enabledBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(color: Colors.white),
@@ -182,6 +227,92 @@ class _SignUpState extends State<SignUp> {
                               )
                           ),
                         ),
+                        const SizedBox(height: 20,),
+                        TextFormField(
+                          textInputAction: TextInputAction.next,
+                          onEditingComplete: () => FocusScope.of(context).requestFocus(_positionCPFocusNode),
+                          focusNode: _positionCPFocusNode,
+                          keyboardType: TextInputType.text,
+                          controller: _locationController,
+                          validator: (value){
+                            if(value!.isEmpty){
+                              return "This field is missing";
+                            }else{
+                              return null;
+                            }
+                          },
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                              hintText: 'Company address',
+                              hintStyle: TextStyle(color: Colors.white),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white),
+                              ),
+                              errorBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red),
+                              )
+                          ),
+                        ),
+                        const SizedBox(height: 20,),
+                        _isLoading ? Center(
+                          child: Container(
+                            width: 70,
+                            height: 70,
+                            child: const CircularProgressIndicator(),
+                          ),
+                        ) : MaterialButton(
+                            onPressed: (){},
+                          color: Colors.blue,
+                          elevation: 8,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(13)
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Text(
+                                  'SignUp',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40,),
+                        Center(
+                          child: RichText(
+                            text: const TextSpan(
+                              children: [
+                                TextSpan(
+                                    text: 'Already have an account',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16
+                                    )
+                                ),
+                                TextSpan(text: '   '),
+                                TextSpan(
+                                    text: 'Login here',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16
+                                  )
+                                )
+                              ],
+                            ),
+                          ),
+                        )
                       ],
                     ),
                   )
@@ -193,6 +324,95 @@ class _SignUpState extends State<SignUp> {
       ),
     );
   }
+
+  void _showImageDialog(){
+    showDialog(context: context, builder: (context){
+      return AlertDialog(
+        title: Text('Please choose an option'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            InkWell(
+              onTap: (){
+                _getFromCamera(); //Option to capture image from camera
+
+              },
+              child: Row(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.camera,
+                      color: Colors.purple,
+                    ),
+                  ),
+                  Text(
+                    'Camera',
+                    style: TextStyle(color: Colors.purple),
+                  )
+                ],
+              ),
+            ),
+            InkWell(
+              onTap: (){
+                _getFromGallery(); //Option to pick image from gallery
+
+              },
+              child: Row(
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.image,
+                      color: Colors.purple,
+                    ),
+                  ),
+                  Text(
+                    'Gallery',
+                    style: TextStyle(color: Colors.purple),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      );
+    });
+  }
+
+  void _getFromGallery() async{
+    PickedFile? pickedFile = await ImagePicker().getImage(
+      source: ImageSource.camera,
+      maxHeight: 1080,
+      maxWidth: 1080,
+    );
+    _cropImage(pickedFile!.path);
+    Navigator.pop(context);
+  }
+
+  void _getFromCamera() async{
+    PickedFile? pickedFile = await ImagePicker().getImage(
+      source: ImageSource.camera,
+      maxHeight: 1080,
+      maxWidth: 1080,
+    );
+    _cropImage(pickedFile!.path);
+    Navigator.pop(context);
+  }
+
+  void _cropImage(filePath) async{
+    File? croppedImage = await ImageCropper.cropImage(
+      sourcePath: filePath,
+      maxHeight: 1080,
+      maxWidth: 1080,
+    );
+    if(croppedImage != null){
+      setState(() {
+        imageFile = croppedImage;
+      });
+    }
+  }
+
 }
 
 
