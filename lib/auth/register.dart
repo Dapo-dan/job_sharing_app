@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,25 +15,25 @@ class SignUp extends StatefulWidget {
   _SignUpState createState() => _SignUpState();
 }
 
-class _SignUpState extends State<SignUp> {
+class _SignUpState extends State<SignUp> with TickerProviderStateMixin{
 
   late AnimationController _animationController;
   late Animation<double> _animation;
-  late TextEditingController _fullNameController = TextEditingController(text: '');
-  late TextEditingController _emailTextController = TextEditingController(text: '');
-  late TextEditingController _passTextController = TextEditingController(text: '');
-  late TextEditingController _locationController = TextEditingController(text: '');
-  late TextEditingController _phoneNumberController = TextEditingController(text: '');
+  late final TextEditingController _fullNameController = TextEditingController(text: '');
+  late final TextEditingController _emailTextController = TextEditingController(text: '');
+  late final TextEditingController _passTextController = TextEditingController(text: '');
+  late final TextEditingController _locationController = TextEditingController(text: '');
+  late final TextEditingController _phoneNumberController = TextEditingController(text: '');
 
-  FocusNode _emailFocusNode = FocusNode();
-  FocusNode _passFocusNode = FocusNode();
-  FocusNode _positionCPFocusNode = FocusNode();
-  FocusNode _phoneNumberFocusNode = FocusNode();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passFocusNode = FocusNode();
+  final FocusNode _positionCPFocusNode = FocusNode();
+  final FocusNode _phoneNumberFocusNode = FocusNode();
   bool _obscureText = true;
   final _signUpFormKey = GlobalKey<FormState>();
   File? imageFile;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _isLoading = false;
+  final bool _isLoading = false;
   String? imageUrl;
 
   @override
@@ -47,6 +48,22 @@ class _SignUpState extends State<SignUp> {
     _positionCPFocusNode.dispose();
     _phoneNumberFocusNode.dispose();
     super.dispose();
+  }
+
+  //login page annimation
+  void initState(){
+    _animationController = AnimationController(vsync: this, duration: Duration(seconds: 20));
+    _animation = CurvedAnimation(parent: _animationController, curve: Curves.linear)
+    ..addListener(() {
+      setState(() {});
+    })..addStatusListener((animationStatus){
+      if(animationStatus == AnimationStatus.completed){
+        _animationController.reset();
+        _animationController.forward();
+      }
+    });
+    _animationController.forward();
+    super.initState();
   }
 
   @override
@@ -290,9 +307,9 @@ class _SignUpState extends State<SignUp> {
                         const SizedBox(height: 40,),
                         Center(
                           child: RichText(
-                            text: const TextSpan(
+                            text: TextSpan(
                               children: [
-                                TextSpan(
+                                const TextSpan(
                                     text: 'Already have an account',
                                     style: TextStyle(
                                         color: Colors.white,
@@ -300,10 +317,14 @@ class _SignUpState extends State<SignUp> {
                                         fontSize: 16
                                     )
                                 ),
-                                TextSpan(text: '   '),
+                                const TextSpan(text: '   '),
                                 TextSpan(
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () =>  Navigator.canPop(context)
+                                    ? Navigator.pop(context)
+                                    : null,
                                     text: 'Login here',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.blue,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16
@@ -382,7 +403,7 @@ class _SignUpState extends State<SignUp> {
 
   void _getFromGallery() async{
     PickedFile? pickedFile = await ImagePicker().getImage(
-      source: ImageSource.camera,
+      source: ImageSource.gallery,
       maxHeight: 1080,
       maxWidth: 1080,
     );

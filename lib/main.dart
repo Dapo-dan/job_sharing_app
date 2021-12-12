@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:job_sharing_app/auth/register.dart';
 import 'package:job_sharing_app/user_state.dart';
 
 void main() {
@@ -51,7 +52,7 @@ class MyApp extends StatelessWidget {
                   scaffoldBackgroundColor: Colors.black,
                   primarySwatch: Colors.blue,
               ),
-            home: UserState(),
+            home: SignUp(), //We should normally call the user state class but since we don't have the login page setup yet we would use this
       );
     });
   }
